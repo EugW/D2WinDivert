@@ -92,9 +92,9 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>C:\Users\EugW\source\repos\D2WinDivert\D2WinDivert\include\WinDivert.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SubSystem>
       </SubSystem>
+      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -116,9 +116,9 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>C:\Users\EugW\source\repos\D2WinDivert\D2WinDivert\include\WinDivert.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SubSystem>
       </SubSystem>
+      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

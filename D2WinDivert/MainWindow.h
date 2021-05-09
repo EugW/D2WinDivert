@@ -40,6 +40,27 @@ namespace D2WinDivert {
 				delete components;
 			}
 		}
+
+	private:
+		void StrToStd() {
+			auto str = this->textBoxSteamIDs->Text->Split('\n');
+			if (playersID == nullptr)
+				playersID = new std::vector<std::string>;
+			else
+				playersID->clear();
+			for (int i = 0; i < str->Length; i++) {
+				if (!String::IsNullOrWhiteSpace(str[i])) {
+					msclr::interop::marshal_context context;
+					std::string a = context.marshal_as<std::string>(str[i]);
+					if (a[a.length() - 1] == '\n' || a[a.length() - 1] == '\r')
+						a.pop_back();
+					if (a[a.length() - 1] == '\n' || a[a.length() - 1] == '\r')
+						a.pop_back();
+					playersID->push_back(a);
+				}
+			}
+		}
+
 	private: System::Windows::Forms::Label^ label1;
 	private: System::Windows::Forms::TextBox^ textBoxSteamIDs;
 	private: System::Windows::Forms::GroupBox^ groupBox1;
@@ -51,6 +72,8 @@ namespace D2WinDivert {
 	private: System::Windows::Forms::TextBox^ textBoxThreads;
 	private: System::Windows::Forms::Button^ buttonStart;
 	private: System::Windows::Forms::Button^ buttonApply;
+	private: System::Windows::Forms::Label^ label5;
+	private: System::Windows::Forms::LinkLabel^ linkLabel1;
 
 	protected:
 
@@ -79,6 +102,8 @@ namespace D2WinDivert {
 			this->label2 = (gcnew System::Windows::Forms::Label());
 			this->buttonStart = (gcnew System::Windows::Forms::Button());
 			this->buttonApply = (gcnew System::Windows::Forms::Button());
+			this->label5 = (gcnew System::Windows::Forms::Label());
+			this->linkLabel1 = (gcnew System::Windows::Forms::LinkLabel());
 			this->groupBox1->SuspendLayout();
 			this->SuspendLayout();
 			// 
@@ -87,16 +112,16 @@ namespace D2WinDivert {
 			this->label1->AutoSize = true;
 			this->label1->Location = System::Drawing::Point(12, 9);
 			this->label1->Name = L"label1";
-			this->label1->Size = System::Drawing::Size(110, 13);
+			this->label1->Size = System::Drawing::Size(51, 13);
 			this->label1->TabIndex = 0;
-			this->label1->Text = L"SteamID тиммейтов:";
+			this->label1->Text = L"SteamID:";
 			// 
 			// textBoxSteamIDs
 			// 
 			this->textBoxSteamIDs->Location = System::Drawing::Point(15, 25);
 			this->textBoxSteamIDs->Multiline = true;
 			this->textBoxSteamIDs->Name = L"textBoxSteamIDs";
-			this->textBoxSteamIDs->Size = System::Drawing::Size(140, 170);
+			this->textBoxSteamIDs->Size = System::Drawing::Size(140, 171);
 			this->textBoxSteamIDs->TabIndex = 2;
 			// 
 			// groupBox1
@@ -109,34 +134,34 @@ namespace D2WinDivert {
 			this->groupBox1->Controls->Add(this->label2);
 			this->groupBox1->Location = System::Drawing::Point(161, 95);
 			this->groupBox1->Name = L"groupBox1";
-			this->groupBox1->Size = System::Drawing::Size(120, 100);
+			this->groupBox1->Size = System::Drawing::Size(120, 101);
 			this->groupBox1->TabIndex = 3;
 			this->groupBox1->TabStop = false;
 			this->groupBox1->Text = L"Сложные приколы";
 			// 
 			// textBoxPriority
 			// 
-			this->textBoxPriority->Location = System::Drawing::Point(91, 69);
+			this->textBoxPriority->Location = System::Drawing::Point(94, 71);
 			this->textBoxPriority->Name = L"textBoxPriority";
-			this->textBoxPriority->Size = System::Drawing::Size(23, 20);
+			this->textBoxPriority->Size = System::Drawing::Size(20, 20);
 			this->textBoxPriority->TabIndex = 5;
 			this->textBoxPriority->Text = L"0";
 			this->textBoxPriority->TextAlign = System::Windows::Forms::HorizontalAlignment::Center;
 			// 
 			// textBoxBatch
 			// 
-			this->textBoxBatch->Location = System::Drawing::Point(91, 43);
+			this->textBoxBatch->Location = System::Drawing::Point(94, 45);
 			this->textBoxBatch->Name = L"textBoxBatch";
-			this->textBoxBatch->Size = System::Drawing::Size(23, 20);
+			this->textBoxBatch->Size = System::Drawing::Size(20, 20);
 			this->textBoxBatch->TabIndex = 4;
 			this->textBoxBatch->Text = L"1";
 			this->textBoxBatch->TextAlign = System::Windows::Forms::HorizontalAlignment::Center;
 			// 
 			// textBoxThreads
 			// 
-			this->textBoxThreads->Location = System::Drawing::Point(91, 16);
+			this->textBoxThreads->Location = System::Drawing::Point(94, 19);
 			this->textBoxThreads->Name = L"textBoxThreads";
-			this->textBoxThreads->Size = System::Drawing::Size(23, 20);
+			this->textBoxThreads->Size = System::Drawing::Size(20, 20);
 			this->textBoxThreads->TabIndex = 3;
 			this->textBoxThreads->Text = L"1";
 			this->textBoxThreads->TextAlign = System::Windows::Forms::HorizontalAlignment::Center;
@@ -144,7 +169,7 @@ namespace D2WinDivert {
 			// label4
 			// 
 			this->label4->AutoSize = true;
-			this->label4->Location = System::Drawing::Point(6, 73);
+			this->label4->Location = System::Drawing::Point(6, 74);
 			this->label4->Name = L"label4";
 			this->label4->Size = System::Drawing::Size(38, 13);
 			this->label4->TabIndex = 2;
@@ -153,7 +178,7 @@ namespace D2WinDivert {
 			// label3
 			// 
 			this->label3->AutoSize = true;
-			this->label3->Location = System::Drawing::Point(6, 46);
+			this->label3->Location = System::Drawing::Point(6, 48);
 			this->label3->Name = L"label3";
 			this->label3->Size = System::Drawing::Size(56, 13);
 			this->label3->TabIndex = 1;
@@ -162,7 +187,7 @@ namespace D2WinDivert {
 			// label2
 			// 
 			this->label2->AutoSize = true;
-			this->label2->Location = System::Drawing::Point(6, 19);
+			this->label2->Location = System::Drawing::Point(6, 22);
 			this->label2->Name = L"label2";
 			this->label2->Size = System::Drawing::Size(46, 13);
 			this->label2->TabIndex = 0;
@@ -189,11 +214,33 @@ namespace D2WinDivert {
 			this->buttonApply->UseVisualStyleBackColor = true;
 			this->buttonApply->Click += gcnew System::EventHandler(this, &MainWindow::buttonApply_Click);
 			// 
+			// label5
+			// 
+			this->label5->AutoSize = true;
+			this->label5->Location = System::Drawing::Point(12, 199);
+			this->label5->Name = L"label5";
+			this->label5->Size = System::Drawing::Size(73, 13);
+			this->label5->TabIndex = 7;
+			this->label5->Text = L"D2 PRIVATE:";
+			// 
+			// linkLabel1
+			// 
+			this->linkLabel1->AutoSize = true;
+			this->linkLabel1->Location = System::Drawing::Point(121, 199);
+			this->linkLabel1->Name = L"linkLabel1";
+			this->linkLabel1->Size = System::Drawing::Size(160, 13);
+			this->linkLabel1->TabIndex = 8;
+			this->linkLabel1->TabStop = true;
+			this->linkLabel1->Text = L"https://discord.gg/8vSmKJFgp7";
+			this->linkLabel1->LinkClicked += gcnew System::Windows::Forms::LinkLabelLinkClickedEventHandler(this, &MainWindow::linkLabel1_LinkClicked);
+			// 
 			// MainWindow
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(295, 204);
+			this->ClientSize = System::Drawing::Size(295, 221);
+			this->Controls->Add(this->linkLabel1);
+			this->Controls->Add(this->label5);
 			this->Controls->Add(this->buttonApply);
 			this->Controls->Add(this->buttonStart);
 			this->Controls->Add(this->groupBox1);
@@ -213,26 +260,7 @@ namespace D2WinDivert {
 		}
 #pragma endregion
 	private: System::Void buttonStart_Click(System::Object^ sender, System::EventArgs^ e) {
-		auto str = this->textBoxSteamIDs->Text->Split('\n');
-		if (playersID == nullptr) {
-			playersID = new std::vector<std::string>;
-		}
-		else {
-			playersID->clear();
-		}
-		for (int i = 0; i < str->Length; i++) {
-			if (!String::IsNullOrWhiteSpace(str[i])) {
-				msclr::interop::marshal_context context;
-				std::string a = context.marshal_as<std::string>(str[i]);
-				if (a[a.length() - 1] == '\n' || a[a.length() - 1] == '\r') {
-					a.pop_back();
-				}
-				if (a[a.length() - 1] == '\n' || a[a.length() - 1] == '\r') {
-					a.pop_back();
-				}
-				playersID->push_back(a);
-			}
-		}
+		StrToStd();
 		filter(Convert::ToInt32(this->textBoxThreads->Text), 
 			Convert::ToInt32(this->textBoxBatch->Text), 
 			Convert::ToInt32(this->textBoxPriority->Text), playersID);
@@ -240,26 +268,10 @@ namespace D2WinDivert {
 		this->buttonApply->Enabled = true;
 	}
 	private: System::Void buttonApply_Click(System::Object^ sender, System::EventArgs^ e) {
-		auto str = this->textBoxSteamIDs->Text->Split('\n');
-		if (playersID == nullptr) {
-			playersID = new std::vector<std::string>;
-		}
-		else {
-			playersID->clear();
-		}
-		for (int i = 0; i < str->Length; i++) {
-			if (!String::IsNullOrWhiteSpace(str[i])) {
-				msclr::interop::marshal_context context;
-				std::string a = context.marshal_as<std::string>(str[i]);
-				if (a[a.length() - 1] == '\n' || a[a.length() - 1] == '\r') {
-					a.pop_back();
-				}
-				if (a[a.length() - 1] == '\n' || a[a.length() - 1] == '\r') {
-					a.pop_back();
-				}
-				playersID->push_back(a);
-			}
-		}
+		StrToStd();
 	}
+private: System::Void linkLabel1_LinkClicked(System::Object^ sender, System::Windows::Forms::LinkLabelLinkClickedEventArgs^ e) {
+	System::Diagnostics::Process::Start("https://discord.gg/8vSmKJFgp7");
+}
 };
 }

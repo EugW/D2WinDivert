@@ -26,7 +26,6 @@ DWORD WINAPI passthru(LPVOID lpParam) {
     packet = (UINT8*)malloc(packet_len);
     addr = (WINDIVERT_ADDRESS*)malloc(batch * sizeof(WINDIVERT_ADDRESS));
     if (packet == NULL || addr == NULL) {
-        fprintf(stderr, "error: failed to allocate buffer (%d)\n", GetLastError());
         exit(EXIT_FAILURE);
     }
     // Main loop:
@@ -65,10 +64,8 @@ void filter(int threads, int batch, int priority, std::vector<std::string>* play
     handle = WinDivertOpen(filter, WINDIVERT_LAYER_NETWORK, (INT16)priority, 0);
     if (handle == INVALID_HANDLE_VALUE) {
         if (GetLastError() == ERROR_INVALID_PARAMETER) {
-            fprintf(stderr, "error: filter syntax error\n");
             exit(EXIT_FAILURE);
         }
-        fprintf(stderr, "error: failed to open the WinDivert device (%d)\n", GetLastError());
         exit(EXIT_FAILURE);
     }
 
@@ -79,11 +76,8 @@ void filter(int threads, int batch, int priority, std::vector<std::string>* play
     for (i = 0; i < threads; i++) {
         thread = CreateThread(NULL, 0, passthru, (LPVOID)config, 0, NULL);
         if (thread == NULL) {
-            fprintf(stderr, "error: failed to start passthru thread (%d)\n", GetLastError());
             exit(EXIT_FAILURE);
         }
     }
-    // Main thread:
-    //passthru((LPVOID)&config);
 }
 
