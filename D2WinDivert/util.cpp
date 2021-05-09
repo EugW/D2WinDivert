@@ -3,12 +3,14 @@
 #include "windivert.h"
 #include "util.h"
 
+using namespace std;
+
 #define MTU 1500
 
 typedef struct {
     HANDLE handle;
     int batch;
-    std::vector<std::string>* players;
+    vector<string>* players;
 } CONFIG, * PCONFIG;
 
 // Passthru thread.
@@ -19,7 +21,7 @@ DWORD WINAPI passthru(LPVOID lpParam) {
     PCONFIG config = (PCONFIG)lpParam;
     HANDLE handle = config->handle;
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    std::vector<std::string>* players = config->players;
+    vector<string>* players = config->players;
     int batch = config->batch;
     packet_len = batch * MTU;
     packet_len = (packet_len < WINDIVERT_MTU_MAX ? WINDIVERT_MTU_MAX : packet_len);
@@ -34,12 +36,12 @@ DWORD WINAPI passthru(LPVOID lpParam) {
         addr_len = batch * sizeof(WINDIVERT_ADDRESS);
         WinDivertRecvEx(handle, packet, packet_len, &recv_len, 0, addr, &addr_len, NULL);
 
-        std::string payload((char*)packet, recv_len);
+        string payload((char*)packet, recv_len);
         bool allow = true;
-        if (payload.find("steamid:7656") != std::string::npos) {
+        if (payload.find("steamid:7656") != string::npos) {
             allow = false;
             for (int x = 0; x < players->size(); x++) {
-                if (payload.find((*players)[x]) != std::string::npos) {
+                if (payload.find(players->at(x)) != string::npos) {
                     allow = true;
                     break;
                 }
@@ -54,7 +56,7 @@ DWORD WINAPI passthru(LPVOID lpParam) {
     return 0;
 }
 
-void filter(int threads, int batch, int priority, std::vector<std::string>* players) {
+void filter(int threads, int batch, int priority, vector<string>* players) {
     const char* filter = "udp.DstPort >= 27000 and udp.DstPort <= 27200";
     int i;
     HANDLE handle, thread;
@@ -63,9 +65,6 @@ void filter(int threads, int batch, int priority, std::vector<std::string>* play
     // Divert traffic matching the filter:
     handle = WinDivertOpen(filter, WINDIVERT_LAYER_NETWORK, (INT16)priority, 0);
     if (handle == INVALID_HANDLE_VALUE) {
-        if (GetLastError() == ERROR_INVALID_PARAMETER) {
-            exit(EXIT_FAILURE);
-        }
         exit(EXIT_FAILURE);
     }
 
