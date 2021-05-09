@@ -261,8 +261,8 @@ namespace D2WinDivert {
 #pragma endregion
 	private: System::Void buttonStart_Click(System::Object^ sender, System::EventArgs^ e) {
 		StrToStd();
-		filter(Convert::ToInt32(this->textBoxThreads->Text), 
-			Convert::ToInt32(this->textBoxBatch->Text), 
+		filter(Convert::ToInt32(this->textBoxThreads->Text),
+			Convert::ToInt32(this->textBoxBatch->Text),
 			Convert::ToInt32(this->textBoxPriority->Text), playersID);
 		this->buttonStart->Enabled = false;
 		this->buttonApply->Enabled = true;
@@ -270,8 +270,8 @@ namespace D2WinDivert {
 	private: System::Void buttonApply_Click(System::Object^ sender, System::EventArgs^ e) {
 		StrToStd();
 	}
-private: System::Void linkLabel1_LinkClicked(System::Object^ sender, System::Windows::Forms::LinkLabelLinkClickedEventArgs^ e) {
-	System::Diagnostics::Process::Start("https://discord.gg/8vSmKJFgp7");
-}
-};
+	private: System::Void linkLabel1_LinkClicked(System::Object^ sender, System::Windows::Forms::LinkLabelLinkClickedEventArgs^ e) {
+		System::Diagnostics::Process::Start("https://discord.gg/8vSmKJFgp7");
+	}
+	};
 }
