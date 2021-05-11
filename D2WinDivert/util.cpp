@@ -27,9 +27,8 @@ DWORD WINAPI passthru(LPVOID lpParam) {
     packet_len = (packet_len < WINDIVERT_MTU_MAX ? WINDIVERT_MTU_MAX : packet_len);
     packet = (UINT8*)malloc(packet_len);
     addr = (WINDIVERT_ADDRESS*)malloc(batch * sizeof(WINDIVERT_ADDRESS));
-    if (packet == NULL || addr == NULL) {
+    if (packet == NULL || addr == NULL)
         exit(EXIT_FAILURE);
-    }
     // Main loop:
     while (true) {
         // Read a matching packet.
@@ -40,33 +39,30 @@ DWORD WINAPI passthru(LPVOID lpParam) {
         bool allow = true;
         if (payload.find("steamid:7656") != string::npos) {
             allow = false;
-            for (int x = 0; x < players->size(); x++) {
+            for (int x = 0; x < players->size(); x++)
                 if (payload.find(players->at(x)) != string::npos) {
                     allow = true;
                     break;
                 }
-            }
         }
 
-        if (allow) {
+        if (allow)
             // Re-inject the matching packet.
             WinDivertSendEx(handle, packet, recv_len, NULL, 0, addr, addr_len, NULL);
-        }
     }
     return 0;
 }
 
-void filter(int threads, int batch, int priority, vector<string>* players) {
+void filter(int threads, int batch, vector<string>* players) {
     const char* filter = "udp.DstPort >= 27000 and udp.DstPort <= 27200";
     int i;
     HANDLE handle, thread;
     PCONFIG config = new CONFIG();
 
     // Divert traffic matching the filter:
-    handle = WinDivertOpen(filter, WINDIVERT_LAYER_NETWORK, (INT16)priority, 0);
-    if (handle == INVALID_HANDLE_VALUE) {
+    handle = WinDivertOpen(filter, WINDIVERT_LAYER_NETWORK, 0, 0);
+    if (handle == INVALID_HANDLE_VALUE)
         exit(EXIT_FAILURE);
-    }
 
     // Start the threads
     config->handle = handle;
@@ -74,9 +70,8 @@ void filter(int threads, int batch, int priority, vector<string>* players) {
     config->players = players;
     for (i = 0; i < threads; i++) {
         thread = CreateThread(NULL, 0, passthru, (LPVOID)config, 0, NULL);
-        if (thread == NULL) {
+        if (thread == NULL)
             exit(EXIT_FAILURE);
-        }
     }
 }
 

@@ -2,9 +2,11 @@
 
 #include "util.h"
 #include <fstream>
+#include <map>
 #include <msclr\marshal_cppstd.h>
 
 std::vector<std::string>* playersID;
+std::map<std::string, std::string> playersNames;
 
 namespace D2WinDivert {
 
@@ -18,11 +20,9 @@ namespace D2WinDivert {
 	/// <summary>
 	/// Summary for MainWIndow
 	/// </summary>
-	public ref class MainWindow : public System::Windows::Forms::Form
-	{
+	public ref class MainWindow : public System::Windows::Forms::Form {
 	public:
-		MainWindow(void)
-		{
+		MainWindow(void) {
 			InitializeComponent();
 			//
 			//TODO: Add the constructor code here
@@ -33,31 +33,10 @@ namespace D2WinDivert {
 		/// <summary>
 		/// Clean up any resources being used.
 		/// </summary>
-		~MainWindow()
-		{
+		~MainWindow() {
 			if (components)
 			{
 				delete components;
-			}
-		}
-
-	private:
-		void StrToStd() {
-			auto str = this->textBoxSteamIDs->Text->Split('\n');
-			if (playersID == nullptr)
-				playersID = new std::vector<std::string>;
-			else
-				playersID->clear();
-			for (int i = 0; i < str->Length; i++) {
-				if (!String::IsNullOrWhiteSpace(str[i])) {
-					msclr::interop::marshal_context context;
-					std::string a = context.marshal_as<std::string>(str[i]);
-					if (a[a.length() - 1] == '\n' || a[a.length() - 1] == '\r')
-						a.pop_back();
-					if (a[a.length() - 1] == '\n' || a[a.length() - 1] == '\r')
-						a.pop_back();
-					playersID->push_back(a);
-				}
 			}
 		}
 
@@ -66,14 +45,13 @@ namespace D2WinDivert {
 	private: System::Windows::Forms::GroupBox^ groupBox1;
 	private: System::Windows::Forms::Label^ label3;
 	private: System::Windows::Forms::Label^ label2;
-	private: System::Windows::Forms::Label^ label4;
-	private: System::Windows::Forms::TextBox^ textBoxPriority;
 	private: System::Windows::Forms::TextBox^ textBoxBatch;
 	private: System::Windows::Forms::TextBox^ textBoxThreads;
 	private: System::Windows::Forms::Button^ buttonStart;
-	private: System::Windows::Forms::Button^ buttonApply;
 	private: System::Windows::Forms::Label^ label5;
 	private: System::Windows::Forms::LinkLabel^ linkLabel1;
+	private: System::Windows::Forms::TextBox^ textBoxNames;
+	private: System::Windows::Forms::Button^ buttonHelp;
 
 	protected:
 
@@ -94,16 +72,15 @@ namespace D2WinDivert {
 			this->label1 = (gcnew System::Windows::Forms::Label());
 			this->textBoxSteamIDs = (gcnew System::Windows::Forms::TextBox());
 			this->groupBox1 = (gcnew System::Windows::Forms::GroupBox());
-			this->textBoxPriority = (gcnew System::Windows::Forms::TextBox());
 			this->textBoxBatch = (gcnew System::Windows::Forms::TextBox());
 			this->textBoxThreads = (gcnew System::Windows::Forms::TextBox());
-			this->label4 = (gcnew System::Windows::Forms::Label());
 			this->label3 = (gcnew System::Windows::Forms::Label());
 			this->label2 = (gcnew System::Windows::Forms::Label());
 			this->buttonStart = (gcnew System::Windows::Forms::Button());
-			this->buttonApply = (gcnew System::Windows::Forms::Button());
 			this->label5 = (gcnew System::Windows::Forms::Label());
 			this->linkLabel1 = (gcnew System::Windows::Forms::LinkLabel());
+			this->textBoxNames = (gcnew System::Windows::Forms::TextBox());
+			this->buttonHelp = (gcnew System::Windows::Forms::Button());
 			this->groupBox1->SuspendLayout();
 			this->SuspendLayout();
 			// 
@@ -118,35 +95,25 @@ namespace D2WinDivert {
 			// 
 			// textBoxSteamIDs
 			// 
-			this->textBoxSteamIDs->Location = System::Drawing::Point(15, 25);
+			this->textBoxSteamIDs->Location = System::Drawing::Point(12, 25);
 			this->textBoxSteamIDs->Multiline = true;
 			this->textBoxSteamIDs->Name = L"textBoxSteamIDs";
-			this->textBoxSteamIDs->Size = System::Drawing::Size(140, 171);
+			this->textBoxSteamIDs->Size = System::Drawing::Size(140, 170);
 			this->textBoxSteamIDs->TabIndex = 2;
+			this->textBoxSteamIDs->TextChanged += gcnew System::EventHandler(this, &MainWindow::textBox_Edit);
 			// 
 			// groupBox1
 			// 
-			this->groupBox1->Controls->Add(this->textBoxPriority);
 			this->groupBox1->Controls->Add(this->textBoxBatch);
 			this->groupBox1->Controls->Add(this->textBoxThreads);
-			this->groupBox1->Controls->Add(this->label4);
 			this->groupBox1->Controls->Add(this->label3);
 			this->groupBox1->Controls->Add(this->label2);
-			this->groupBox1->Location = System::Drawing::Point(161, 95);
+			this->groupBox1->Location = System::Drawing::Point(264, 124);
 			this->groupBox1->Name = L"groupBox1";
-			this->groupBox1->Size = System::Drawing::Size(120, 101);
+			this->groupBox1->Size = System::Drawing::Size(120, 71);
 			this->groupBox1->TabIndex = 3;
 			this->groupBox1->TabStop = false;
 			this->groupBox1->Text = L"Сложные приколы";
-			// 
-			// textBoxPriority
-			// 
-			this->textBoxPriority->Location = System::Drawing::Point(94, 71);
-			this->textBoxPriority->Name = L"textBoxPriority";
-			this->textBoxPriority->Size = System::Drawing::Size(20, 20);
-			this->textBoxPriority->TabIndex = 5;
-			this->textBoxPriority->Text = L"0";
-			this->textBoxPriority->TextAlign = System::Windows::Forms::HorizontalAlignment::Center;
 			// 
 			// textBoxBatch
 			// 
@@ -165,15 +132,6 @@ namespace D2WinDivert {
 			this->textBoxThreads->TabIndex = 3;
 			this->textBoxThreads->Text = L"1";
 			this->textBoxThreads->TextAlign = System::Windows::Forms::HorizontalAlignment::Center;
-			// 
-			// label4
-			// 
-			this->label4->AutoSize = true;
-			this->label4->Location = System::Drawing::Point(6, 74);
-			this->label4->Name = L"label4";
-			this->label4->Size = System::Drawing::Size(38, 13);
-			this->label4->TabIndex = 2;
-			this->label4->Text = L"Priority";
 			// 
 			// label3
 			// 
@@ -195,29 +153,18 @@ namespace D2WinDivert {
 			// 
 			// buttonStart
 			// 
-			this->buttonStart->Location = System::Drawing::Point(161, 24);
+			this->buttonStart->Location = System::Drawing::Point(264, 25);
 			this->buttonStart->Name = L"buttonStart";
-			this->buttonStart->Size = System::Drawing::Size(120, 30);
+			this->buttonStart->Size = System::Drawing::Size(120, 64);
 			this->buttonStart->TabIndex = 4;
 			this->buttonStart->Text = L"Начать";
 			this->buttonStart->UseVisualStyleBackColor = true;
 			this->buttonStart->Click += gcnew System::EventHandler(this, &MainWindow::buttonStart_Click);
 			// 
-			// buttonApply
-			// 
-			this->buttonApply->Enabled = false;
-			this->buttonApply->Location = System::Drawing::Point(161, 59);
-			this->buttonApply->Name = L"buttonApply";
-			this->buttonApply->Size = System::Drawing::Size(120, 30);
-			this->buttonApply->TabIndex = 6;
-			this->buttonApply->Text = L"Применить";
-			this->buttonApply->UseVisualStyleBackColor = true;
-			this->buttonApply->Click += gcnew System::EventHandler(this, &MainWindow::buttonApply_Click);
-			// 
 			// label5
 			// 
 			this->label5->AutoSize = true;
-			this->label5->Location = System::Drawing::Point(12, 199);
+			this->label5->Location = System::Drawing::Point(145, 9);
 			this->label5->Name = L"label5";
 			this->label5->Size = System::Drawing::Size(73, 13);
 			this->label5->TabIndex = 7;
@@ -226,7 +173,7 @@ namespace D2WinDivert {
 			// linkLabel1
 			// 
 			this->linkLabel1->AutoSize = true;
-			this->linkLabel1->Location = System::Drawing::Point(121, 199);
+			this->linkLabel1->Location = System::Drawing::Point(224, 9);
 			this->linkLabel1->Name = L"linkLabel1";
 			this->linkLabel1->Size = System::Drawing::Size(160, 13);
 			this->linkLabel1->TabIndex = 8;
@@ -234,14 +181,34 @@ namespace D2WinDivert {
 			this->linkLabel1->Text = L"https://discord.gg/8vSmKJFgp7";
 			this->linkLabel1->LinkClicked += gcnew System::Windows::Forms::LinkLabelLinkClickedEventHandler(this, &MainWindow::linkLabel1_LinkClicked);
 			// 
+			// textBoxNames
+			// 
+			this->textBoxNames->Location = System::Drawing::Point(158, 25);
+			this->textBoxNames->Multiline = true;
+			this->textBoxNames->Name = L"textBoxNames";
+			this->textBoxNames->ReadOnly = true;
+			this->textBoxNames->Size = System::Drawing::Size(100, 170);
+			this->textBoxNames->TabIndex = 9;
+			// 
+			// buttonHelp
+			// 
+			this->buttonHelp->Location = System::Drawing::Point(264, 95);
+			this->buttonHelp->Name = L"buttonHelp";
+			this->buttonHelp->Size = System::Drawing::Size(120, 23);
+			this->buttonHelp->TabIndex = 10;
+			this->buttonHelp->Text = L"\?";
+			this->buttonHelp->UseVisualStyleBackColor = true;
+			this->buttonHelp->Click += gcnew System::EventHandler(this, &MainWindow::buttonHelp_Click);
+			// 
 			// MainWindow
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(295, 221);
+			this->ClientSize = System::Drawing::Size(396, 207);
+			this->Controls->Add(this->buttonHelp);
+			this->Controls->Add(this->textBoxNames);
 			this->Controls->Add(this->linkLabel1);
 			this->Controls->Add(this->label5);
-			this->Controls->Add(this->buttonApply);
 			this->Controls->Add(this->buttonStart);
 			this->Controls->Add(this->groupBox1);
 			this->Controls->Add(this->textBoxSteamIDs);
@@ -260,18 +227,72 @@ namespace D2WinDivert {
 		}
 #pragma endregion
 	private: System::Void buttonStart_Click(System::Object^ sender, System::EventArgs^ e) {
-		StrToStd();
 		filter(Convert::ToInt32(this->textBoxThreads->Text),
-			Convert::ToInt32(this->textBoxBatch->Text),
-			Convert::ToInt32(this->textBoxPriority->Text), playersID);
+			Convert::ToInt32(this->textBoxBatch->Text), playersID);
 		this->buttonStart->Enabled = false;
-		this->buttonApply->Enabled = true;
+		this->textBoxThreads->Enabled = false;
+		this->textBoxBatch->Enabled = false;
 	}
-	private: System::Void buttonApply_Click(System::Object^ sender, System::EventArgs^ e) {
-		StrToStd();
+	private: System::Void textBox_Edit(System::Object^ sender, System::EventArgs^ e) {
+		auto st = this->textBoxSteamIDs->SelectionStart;
+		auto le = this->textBoxSteamIDs->SelectionLength;
+		this->textBoxSteamIDs->Text = this->textBoxSteamIDs->Text->Replace(Environment::NewLine + Environment::NewLine,
+			Environment::NewLine);
+		this->textBoxSteamIDs->Select(st, le);
+		auto str = this->textBoxSteamIDs->Lines;
+		if (playersID == nullptr)
+			playersID = new std::vector<std::string>;
+		else
+			playersID->clear();
+		msclr::interop::marshal_context context;
+		for (int i = 0; i < str->Length; i++)
+			if (!String::IsNullOrWhiteSpace(str[i])) {
+				std::string a = context.marshal_as<std::string>(str[i]->Replace(Environment::NewLine, ""));
+				playersID->push_back(a);
+			}
+		for (int i = 0; i < playersID->size(); i++) {
+			System::Net::WebClient^ wc = gcnew System::Net::WebClient();
+			wc->DownloadStringCompleted += gcnew System::Net::DownloadStringCompletedEventHandler(this, &MainWindow::MyHandler);
+			wc->DownloadStringAsync(gcnew Uri("https://steamcommunity.com/profiles/" +
+				gcnew String(playersID->at(i).c_str()) + "/?xml=1"));
+		}
+
+	}
+	public: System::Void MyHandler(System::Object^ sender, System::Net::DownloadStringCompletedEventArgs^ e) {
+		auto result = e->Result;
+		auto sstart = result->IndexOf("<steamID64>") + 11;
+		auto send = result->IndexOf("</steamID64>");
+		auto nstart = result->IndexOf("<steamID><![CDATA[") + 18;
+		auto nend = result->IndexOf("]]></steamID>");
+		if (sstart != 10 && send != -1 && nstart != 17 && nend != -1) {
+			auto steamid = result->Substring(sstart, send - sstart);
+			auto name = result->Substring(nstart, nend - nstart);
+			msclr::interop::marshal_context context;
+			if (playersNames.count(context.marshal_as<std::string>(steamid)) == 1)
+				playersNames.at(context.marshal_as<std::string>(steamid)) =
+				context.marshal_as<std::string>(name);
+			else
+				playersNames.emplace(context.marshal_as<std::string>(steamid),
+					context.marshal_as<std::string>(name));
+		}
+		this->textBoxNames->Clear();
+		for (int i = 0; i < playersID->size(); i++) {
+			if (playersNames.count(playersID->at(i)) == 1) {
+				this->textBoxNames->Text += gcnew String(playersNames.at(playersID->at(i)).c_str());
+				this->textBoxNames->Text += Environment::NewLine;
+			}
+			else
+				this->textBoxNames->Text += Environment::NewLine;
+		}
 	}
 	private: System::Void linkLabel1_LinkClicked(System::Object^ sender, System::Windows::Forms::LinkLabelLinkClickedEventArgs^ e) {
 		System::Diagnostics::Process::Start("https://discord.gg/8vSmKJFgp7");
+	}
+	private: System::Void buttonHelp_Click(System::Object^ sender, System::EventArgs^ e) {
+		System::Windows::Forms::MessageBox::Show(u8"Рекомендуется не трогать!!!\n\n\n" +
+			u8"Threads - количество потоков, которые обрабатывают пакеты" +
+			u8" (больше-быстрее, нагрузка-больше)\n\nBatch size - количество пакетов, " +
+			u8"обарбатываемых за один проход (больше-медленнее, нагрузка-меньше)", u8"Инструкция");
 	}
 	};
 }
