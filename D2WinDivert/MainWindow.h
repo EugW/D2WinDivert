@@ -227,6 +227,8 @@ namespace D2WinDivert {
 		}
 #pragma endregion
 	private: System::Void buttonStart_Click(System::Object^ sender, System::EventArgs^ e) {
+		if (playersID == nullptr)
+			playersID = new std::vector<std::string>;
 		filter(Convert::ToInt32(this->textBoxThreads->Text),
 			Convert::ToInt32(this->textBoxBatch->Text), playersID);
 		this->buttonStart->Enabled = false;
@@ -247,7 +249,8 @@ namespace D2WinDivert {
 		msclr::interop::marshal_context context;
 		for (int i = 0; i < str->Length; i++)
 			if (!String::IsNullOrWhiteSpace(str[i])) {
-				std::string a = context.marshal_as<std::string>(str[i]->Replace(Environment::NewLine, ""));
+				std::string a = context.marshal_as<std::string>(str[i]->Replace(Environment::NewLine, "")
+					->Replace(" ", ""));
 				playersID->push_back(a);
 			}
 		for (int i = 0; i < playersID->size(); i++) {
