@@ -5,8 +5,6 @@
 
 using namespace std;
 
-#define MTU 1500
-
 typedef struct {
     HANDLE handle;
     vector<string>* players;
