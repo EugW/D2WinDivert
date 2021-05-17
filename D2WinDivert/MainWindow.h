@@ -43,9 +43,9 @@ namespace D2WinDivert {
 	private: System::Windows::Forms::Label^ label1;
 	private: System::Windows::Forms::TextBox^ textBoxSteamIDs;
 	private: System::Windows::Forms::GroupBox^ groupBox1;
-	private: System::Windows::Forms::Label^ label3;
+
 	private: System::Windows::Forms::Label^ label2;
-	private: System::Windows::Forms::TextBox^ textBoxBatch;
+
 	private: System::Windows::Forms::TextBox^ textBoxThreads;
 	private: System::Windows::Forms::Button^ buttonStart;
 	private: System::Windows::Forms::Label^ label5;
@@ -72,9 +72,7 @@ namespace D2WinDivert {
 			this->label1 = (gcnew System::Windows::Forms::Label());
 			this->textBoxSteamIDs = (gcnew System::Windows::Forms::TextBox());
 			this->groupBox1 = (gcnew System::Windows::Forms::GroupBox());
-			this->textBoxBatch = (gcnew System::Windows::Forms::TextBox());
 			this->textBoxThreads = (gcnew System::Windows::Forms::TextBox());
-			this->label3 = (gcnew System::Windows::Forms::Label());
 			this->label2 = (gcnew System::Windows::Forms::Label());
 			this->buttonStart = (gcnew System::Windows::Forms::Button());
 			this->label5 = (gcnew System::Windows::Forms::Label());
@@ -104,25 +102,14 @@ namespace D2WinDivert {
 			// 
 			// groupBox1
 			// 
-			this->groupBox1->Controls->Add(this->textBoxBatch);
 			this->groupBox1->Controls->Add(this->textBoxThreads);
-			this->groupBox1->Controls->Add(this->label3);
 			this->groupBox1->Controls->Add(this->label2);
-			this->groupBox1->Location = System::Drawing::Point(264, 124);
+			this->groupBox1->Location = System::Drawing::Point(264, 150);
 			this->groupBox1->Name = L"groupBox1";
-			this->groupBox1->Size = System::Drawing::Size(120, 71);
+			this->groupBox1->Size = System::Drawing::Size(120, 45);
 			this->groupBox1->TabIndex = 3;
 			this->groupBox1->TabStop = false;
-			this->groupBox1->Text = L"Сложные приколы";
-			// 
-			// textBoxBatch
-			// 
-			this->textBoxBatch->Location = System::Drawing::Point(94, 45);
-			this->textBoxBatch->Name = L"textBoxBatch";
-			this->textBoxBatch->Size = System::Drawing::Size(20, 20);
-			this->textBoxBatch->TabIndex = 4;
-			this->textBoxBatch->Text = L"1";
-			this->textBoxBatch->TextAlign = System::Windows::Forms::HorizontalAlignment::Center;
+			this->groupBox1->Text = L"Advanced";
 			// 
 			// textBoxThreads
 			// 
@@ -132,15 +119,6 @@ namespace D2WinDivert {
 			this->textBoxThreads->TabIndex = 3;
 			this->textBoxThreads->Text = L"1";
 			this->textBoxThreads->TextAlign = System::Windows::Forms::HorizontalAlignment::Center;
-			// 
-			// label3
-			// 
-			this->label3->AutoSize = true;
-			this->label3->Location = System::Drawing::Point(6, 48);
-			this->label3->Name = L"label3";
-			this->label3->Size = System::Drawing::Size(56, 13);
-			this->label3->TabIndex = 1;
-			this->label3->Text = L"Batch size";
 			// 
 			// label2
 			// 
@@ -157,7 +135,7 @@ namespace D2WinDivert {
 			this->buttonStart->Name = L"buttonStart";
 			this->buttonStart->Size = System::Drawing::Size(120, 64);
 			this->buttonStart->TabIndex = 4;
-			this->buttonStart->Text = L"Начать";
+			this->buttonStart->Text = L"Start";
 			this->buttonStart->UseVisualStyleBackColor = true;
 			this->buttonStart->Click += gcnew System::EventHandler(this, &MainWindow::buttonStart_Click);
 			// 
@@ -194,7 +172,7 @@ namespace D2WinDivert {
 			// 
 			this->buttonHelp->Location = System::Drawing::Point(264, 95);
 			this->buttonHelp->Name = L"buttonHelp";
-			this->buttonHelp->Size = System::Drawing::Size(120, 23);
+			this->buttonHelp->Size = System::Drawing::Size(120, 49);
 			this->buttonHelp->TabIndex = 10;
 			this->buttonHelp->Text = L"\?";
 			this->buttonHelp->UseVisualStyleBackColor = true;
@@ -229,11 +207,9 @@ namespace D2WinDivert {
 	private: System::Void buttonStart_Click(System::Object^ sender, System::EventArgs^ e) {
 		if (playersID == nullptr)
 			playersID = new std::vector<std::string>;
-		filter(Convert::ToInt32(this->textBoxThreads->Text),
-			Convert::ToInt32(this->textBoxBatch->Text), playersID);
+		filter(Convert::ToInt32(this->textBoxThreads->Text), playersID);
 		this->buttonStart->Enabled = false;
 		this->textBoxThreads->Enabled = false;
-		this->textBoxBatch->Enabled = false;
 	}
 	private: System::Void textBox_Edit(System::Object^ sender, System::EventArgs^ e) {
 		auto st = this->textBoxSteamIDs->SelectionStart;
@@ -281,7 +257,10 @@ namespace D2WinDivert {
 		this->textBoxNames->Clear();
 		for (int i = 0; i < playersID->size(); i++) {
 			if (playersNames.count(playersID->at(i)) == 1) {
-				this->textBoxNames->Text += gcnew String(playersNames.at(playersID->at(i)).c_str());
+				auto def = System::Text::Encoding::Default;
+				auto utf8 = System::Text::Encoding::UTF8;
+				auto bytes = def->GetBytes(gcnew String(playersNames.at(playersID->at(i)).c_str()));
+				this->textBoxNames->Text += utf8->GetString(bytes);
 				this->textBoxNames->Text += Environment::NewLine;
 			}
 			else
@@ -292,10 +271,9 @@ namespace D2WinDivert {
 		System::Diagnostics::Process::Start("https://discord.gg/8vSmKJFgp7");
 	}
 	private: System::Void buttonHelp_Click(System::Object^ sender, System::EventArgs^ e) {
-		System::Windows::Forms::MessageBox::Show(u8"Рекомендуется не трогать!!!\n\n\n" +
-			u8"Threads - количество потоков, которые обрабатывают пакеты" +
-			u8" (больше-быстрее, нагрузка-больше)\n\nBatch size - количество пакетов, " +
-			u8"обарбатываемых за один проход (больше-медленнее, нагрузка-меньше)", u8"Инструкция");
+		System::Windows::Forms::MessageBox::Show("It's recommended not to change!!!\n\n\n" +
+			"Threads - number of threads that process packets" +
+			" (more is faster, cpu load is bigger)", "Help");
 	}
 	};
 }

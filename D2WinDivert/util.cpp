@@ -9,33 +9,45 @@ using namespace std;
 
 typedef struct {
     HANDLE handle;
-    int batch;
     vector<string>* players;
 } CONFIG, * PCONFIG;
 
+ofstream logfl;
+
+void log(string msg, int code) {
+    logfl.open("log_divert.txt", ofstream::app);
+    logfl << msg << " " << code << endl;
+    logfl.close();
+}
+
+void log(string msg) {
+    log(msg, -1);
+}
+
 // Passthru thread.
 DWORD WINAPI passthru(LPVOID lpParam) {
-    UINT8* packet;
-    UINT packet_len, recv_len, addr_len;
-    WINDIVERT_ADDRESS* addr;
     PCONFIG config = (PCONFIG)lpParam;
-    HANDLE handle = config->handle;
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     vector<string>* players = config->players;
-    int batch = config->batch;
-    packet_len = batch * MTU;
-    packet_len = (packet_len < WINDIVERT_MTU_MAX ? WINDIVERT_MTU_MAX : packet_len);
-    packet = (UINT8*)malloc(packet_len);
-    addr = (WINDIVERT_ADDRESS*)malloc(batch * sizeof(WINDIVERT_ADDRESS));
-    if (packet == NULL || addr == NULL)
+
+    HANDLE handle = config->handle;
+    WINDIVERT_ADDRESS addr;
+    char* packet = (char*)malloc(WINDIVERT_MTU_MAX);
+    unsigned int packetLen;
+
+    if (packet == NULL) {
+        log("error: failed to allocate buffer", GetLastError());
         exit(EXIT_FAILURE);
+    }
+
     // Main loop:
     while (true) {
         // Read a matching packet.
-        addr_len = batch * sizeof(WINDIVERT_ADDRESS);
-        WinDivertRecvEx(handle, packet, packet_len, &recv_len, 0, addr, &addr_len, NULL);
+        if (!WinDivertRecv(handle, packet, WINDIVERT_MTU_MAX, &packetLen, &addr)) {
+            log("warning: failed to read packet", GetLastError());
+            continue;
+        }
 
-        string payload((char*)packet, recv_len);
+        string payload(packet, packetLen);
         bool allow = true;
         if (payload.find("steamid:7656") != string::npos) {
             allow = false;
@@ -46,14 +58,18 @@ DWORD WINAPI passthru(LPVOID lpParam) {
                 }
         }
 
-        if (allow)
+        if (allow) {
             // Re-inject the matching packet.
-            WinDivertSendEx(handle, packet, recv_len, NULL, 0, addr, addr_len, NULL);
+            WinDivertHelperCalcChecksums(packet, packetLen, &addr, 0);
+            if (!WinDivertSend(handle, packet, packetLen, NULL, &addr)) {
+                log("warning: failed to reinject packet", GetLastError());
+            }
+        }
     }
     return 0;
 }
 
-void filter(int threads, int batch, vector<string>* players) {
+void filter(int threads, vector<string>* players) {
     const char* filter = "udp.DstPort >= 27000 and udp.DstPort <= 27200";
     int i;
     HANDLE handle, thread;
@@ -61,17 +77,20 @@ void filter(int threads, int batch, vector<string>* players) {
 
     // Divert traffic matching the filter:
     handle = WinDivertOpen(filter, WINDIVERT_LAYER_NETWORK, 0, 0);
-    if (handle == INVALID_HANDLE_VALUE)
+    if (handle == INVALID_HANDLE_VALUE) {
+        log("error: failed to open the WinDivert device",  GetLastError());
         exit(EXIT_FAILURE);
+    }
 
     // Start the threads
     config->handle = handle;
-    config->batch = batch;
     config->players = players;
     for (i = 0; i < threads; i++) {
         thread = CreateThread(NULL, 0, passthru, (LPVOID)config, 0, NULL);
-        if (thread == NULL)
+        if (thread == NULL) {
+            log("error: failed to create thread", GetLastError());
             exit(EXIT_FAILURE);
+        }
     }
 }
 
