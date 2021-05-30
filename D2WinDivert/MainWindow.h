@@ -231,13 +231,13 @@ namespace D2WinDivert {
 			}
 		for (int i = 0; i < playersID->size(); i++) {
 			System::Net::WebClient^ wc = gcnew System::Net::WebClient();
-			wc->DownloadStringCompleted += gcnew System::Net::DownloadStringCompletedEventHandler(this, &MainWindow::MyHandler);
+			wc->DownloadStringCompleted += gcnew System::Net::DownloadStringCompletedEventHandler(this, &MainWindow::SteamIDHandler);
 			wc->DownloadStringAsync(gcnew Uri("https://steamcommunity.com/profiles/" +
 				gcnew String(playersID->at(i).c_str()) + "/?xml=1"));
 		}
 
 	}
-	public: System::Void MyHandler(System::Object^ sender, System::Net::DownloadStringCompletedEventArgs^ e) {
+	public: System::Void SteamIDHandler(System::Object^ sender, System::Net::DownloadStringCompletedEventArgs^ e) {
 		auto result = e->Result;
 		auto sstart = result->IndexOf("<steamID64>") + 11;
 		auto send = result->IndexOf("</steamID64>");

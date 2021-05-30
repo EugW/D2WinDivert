@@ -47,7 +47,9 @@ DWORD WINAPI passthru(LPVOID lpParam) {
 
         string payload(packet, packetLen);
         bool allow = true;
-        if (payload.find("steamid:7656") != string::npos) {
+        if (payload.find("steamid:7656") != string::npos || 
+            payload.find("str:psn-400") != string::npos || 
+            payload.find("xboxpwid:") != string::npos) {
             allow = false;
             for (int x = 0; x < players->size(); x++)
                 if (payload.find(players->at(x)) != string::npos) {
