@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include <fstream>
 #include <map>
 #include <msclr\marshal_cppstd.h>
 
@@ -196,9 +195,12 @@ namespace D2WinDivert {
 		System::Diagnostics::Process::Start("https://github.com/EugW/D2WinDivert");
 	}
 	private: System::Void buttonHelp_Click(System::Object^ sender, System::EventArgs^ e) {
-		System::Windows::Forms::MessageBox::Show("It's recommended not to change!!!\n\n\n" +
-			"Threads - number of threads that process packets" +
-			" (more is faster, cpu load is bigger)", "Help");
+		System::Windows::Forms::MessageBox::Show(
+			"Threads - number of threads that process packets (more is faster, cpu load is bigger)\n\n" +
+			"Scan - activate this mode and tell teammates to join fireteam, it will capture their IDs and add them to the list\n\n" +
+			"Filter - activate this mode and it will block any connection except that contain ID from the list\n\n" + 
+			"App works with STEAM, XBOX and PS",
+			"Help");
 	}
 	public: int getThreads() {
 		return Convert::ToInt32(textBoxThreads->Text);

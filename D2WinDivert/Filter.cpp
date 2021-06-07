@@ -1,5 +1,6 @@
 #include "Filter.h"
 #include "windivert.h"
+#include <fstream>
 
 Filter::Filter(D2WinDivert::MainWindow^ win, int mode) {
     window = win;
@@ -12,11 +13,13 @@ Filter::Filter(D2WinDivert::MainWindow^ win, int mode) {
         log("error: failed to open the WinDivert device", GetLastError());
         exit(EXIT_FAILURE);
     }
-    for (int i = 0; i < window->getThreads(); i++) {
-        if (mode == 0) {
+    if (mode == 0) {
+        for (int i = 0; i < window->getThreads(); i++) {
             (gcnew System::Threading::Thread(gcnew System::Threading::ThreadStart(this, &Filter::filterFunction)))->Start();
         }
-        else {
+    }
+    else if (mode == 1) {
+        for (int i = 0; i < window->getThreads(); i++) {
             (gcnew System::Threading::Thread(gcnew System::Threading::ThreadStart(this, &Filter::scanFunction)))->Start();
         }
     }

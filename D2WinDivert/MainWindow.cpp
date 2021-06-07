@@ -1,7 +1,5 @@
-#include "MainWindow.h"
-#include <Windows.h>
-#include <stdio.h>
 #include "Filter.h"
+#include <Windows.h>
 
 using namespace D2WinDivert;
 
