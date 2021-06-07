@@ -182,7 +182,7 @@ namespace D2WinDivert {
 			this->MaximizeBox = false;
 			this->MinimizeBox = false;
 			this->Name = L"MainWindow";
-			this->Text = L"D2 WinDivert by EugW";
+			this->Text = L"D2WinDivert by EugW";
 			this->ResumeLayout(false);
 			this->PerformLayout();
 

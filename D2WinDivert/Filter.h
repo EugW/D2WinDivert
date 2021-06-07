@@ -20,4 +20,3 @@ private: D2WinDivert::MainWindow^ window;
 private: std::vector<std::string>* players;
 private: HANDLE handle;
 };
-
