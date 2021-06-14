@@ -198,7 +198,7 @@ namespace D2WinDivert {
 		System::Windows::Forms::MessageBox::Show(
 			"Threads - number of threads that process packets (more is faster, cpu load is bigger)\n\n" +
 			"Scan - activate this mode and tell teammates to join fireteam, it will capture their IDs and add them to the list\n\n" +
-			"Filter - activate this mode and it will block any connection except that contain ID from the list\n\n" + 
+			"Filter - activate this mode and it will block any connection except that contain ID from the list\n\n" +
 			"App works with STEAM, XBOX and PS",
 			"Help");
 	}

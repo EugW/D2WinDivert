@@ -15,12 +15,12 @@ Filter::Filter(D2WinDivert::MainWindow^ win, int mode) {
     }
     if (mode == 0) {
         for (int i = 0; i < window->getThreads(); i++) {
-            (gcnew System::Threading::Thread(gcnew System::Threading::ThreadStart(this, &Filter::filterFunction)))->Start();
+            CreateThread(NULL, 0, staticFilterStart, this, 0, NULL);
         }
     }
     else if (mode == 1) {
         for (int i = 0; i < window->getThreads(); i++) {
-            (gcnew System::Threading::Thread(gcnew System::Threading::ThreadStart(this, &Filter::scanFunction)))->Start();
+            CreateThread(NULL, 0, staticScanStart, this, 0, NULL);
         }
     }
 }
@@ -32,7 +32,15 @@ void Filter::closeHandle() {
     }
 }
 
-void Filter::filterFunction() {
+DWORD WINAPI Filter::staticFilterStart(LPVOID lpParam) {
+    return ((Filter*)lpParam)->filterFunction();
+}
+
+DWORD WINAPI Filter::staticScanStart(LPVOID lpParam) {
+    return ((Filter*)lpParam)->scanFunction();
+}
+
+DWORD Filter::filterFunction() {
     WINDIVERT_ADDRESS addr;
     char* packet = (char*)malloc(WINDIVERT_MTU_MAX);
     unsigned int packetLen;
@@ -73,9 +81,10 @@ void Filter::filterFunction() {
     }
     free(packet);
     window->threadStateChange(0, 1);
+    return 0;
 }
 
-void Filter::scanFunction() {
+DWORD Filter::scanFunction() {
     WINDIVERT_ADDRESS addr;
     char* packet = (char*)malloc(WINDIVERT_MTU_MAX);
     unsigned int packetLen;
@@ -114,7 +123,6 @@ void Filter::scanFunction() {
         if (str.find(id) == std::string::npos) {
             window->appendTextBox(id);
         }
-
         // Re-inject the matching packet.
         WinDivertHelperCalcChecksums(packet, packetLen, &addr, 0);
         if (!WinDivertSend(handle, packet, packetLen, NULL, &addr)) {
@@ -123,6 +131,7 @@ void Filter::scanFunction() {
     }
     free(packet);
     window->threadStateChange(1, 1);
+    return 0;
 }
 
 void Filter::log(std::string msg, int code) {

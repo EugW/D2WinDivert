@@ -3,11 +3,11 @@
 
 using namespace D2WinDivert;
 
-msclr::auto_gcroot<Filter^> flt;
+Filter* flt;
 
 System::Void MainWindow::filterCheckbox_CheckedChanged(System::Object^ sender, System::EventArgs^ e) {
 	if (filterCheckBox->Checked) {
-		flt = gcnew Filter(this, 0);
+		flt = new Filter(this, 0);
 	}
 	else {
 		flt->closeHandle();
@@ -19,7 +19,7 @@ System::Void MainWindow::filterCheckbox_CheckedChanged(System::Object^ sender, S
 
 System::Void MainWindow::scanCheckBox_CheckedChanged(System::Object^ sender, System::EventArgs^ e) {
 	if (scanCheckBox->Checked) {
-		flt = gcnew Filter(this, 1);
+		flt = new Filter(this, 1);
 	}
 	else {
 		flt->closeHandle();
@@ -28,7 +28,6 @@ System::Void MainWindow::scanCheckBox_CheckedChanged(System::Object^ sender, Sys
 	scanCheckBox->Enabled = false;
 	textBoxThreads->Enabled = false;
 }
-
 
 System::Void MainWindow::textBox_Edit(System::Object^ sender, System::EventArgs^ e) {
 	auto st = textBoxSteamIDs->SelectionStart;
@@ -85,13 +84,13 @@ System::Void MainWindow::SteamIDHandler(System::Object^ sender, System::Net::Dow
 }
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
-    Application::EnableVisualStyles();
-    Application::SetCompatibleTextRenderingDefault(false);
-    Application::Run(gcnew MainWindow);
-	if (flt.get() != nullptr) {
+	Application::EnableVisualStyles();
+	Application::SetCompatibleTextRenderingDefault(false);
+	Application::Run(gcnew MainWindow);
+	if (flt != nullptr) {
 		if (flt->running) {
 			flt->closeHandle();
 		}
 	}
-    return 0;
+	return 0;
 }
