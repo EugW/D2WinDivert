@@ -46,6 +46,8 @@ namespace D2WinDivert {
 	private: System::Windows::Forms::CheckBox^ filterCheckBox;
 	private: System::Windows::Forms::CheckBox^ scanCheckBox;
 	private: System::Windows::Forms::VScrollBar^ vScrollBar1;
+	private: System::Windows::Forms::Label^ labelStatus;
+
 
 	protected:
 
@@ -73,6 +75,7 @@ namespace D2WinDivert {
 			this->filterCheckBox = (gcnew System::Windows::Forms::CheckBox());
 			this->scanCheckBox = (gcnew System::Windows::Forms::CheckBox());
 			this->vScrollBar1 = (gcnew System::Windows::Forms::VScrollBar());
+			this->labelStatus = (gcnew System::Windows::Forms::Label());
 			this->SuspendLayout();
 			// 
 			// label1
@@ -175,11 +178,20 @@ namespace D2WinDivert {
 			this->vScrollBar1->TabIndex = 15;
 			this->vScrollBar1->Scroll += gcnew System::Windows::Forms::ScrollEventHandler(this, &MainWindow::vScrollBar1_Scroll);
 			// 
+			// labelStatus
+			// 
+			this->labelStatus->AutoSize = true;
+			this->labelStatus->Location = System::Drawing::Point(444, 212);
+			this->labelStatus->Name = L"labelStatus";
+			this->labelStatus->Size = System::Drawing::Size(0, 13);
+			this->labelStatus->TabIndex = 16;
+			// 
 			// MainWindow
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(528, 236);
+			this->Controls->Add(this->labelStatus);
 			this->Controls->Add(this->vScrollBar1);
 			this->Controls->Add(this->scanCheckBox);
 			this->Controls->Add(this->filterCheckBox);
@@ -225,25 +237,27 @@ namespace D2WinDivert {
 		auto res = context.marshal_as<std::string>(str);
 		return res;
 	}
-	private: delegate System::Void threadStateChangeDelegate(int type, int evt);
-	public: System::Void threadStateChange(int type, int evt) {
-		auto action = gcnew threadStateChangeDelegate(this, &MainWindow::threadStateChangeWorker);
-		Invoke(action, type, evt);
+	private: delegate System::Void threadStateChangeDelegate(int chg);
+	public: System::Void threadStateChange(int chg) {
+		if (!IsDisposed) {
+			auto action = gcnew threadStateChangeDelegate(this, &MainWindow::threadStateChangeWorker);
+			Invoke(action, chg);
+		}
 	}
-	private: System::Void threadStateChangeWorker(int type, int evt) {
-		if (evt == 0) {
-			if (type == 0) {
+	private: System::Void threadStateChangeWorker(int chg) {
+		if (chg > 0) {
+			if (chg == 1) {
 				filterCheckBox->Enabled = true;
 				scanCheckBox->Enabled = false;
 				textBoxThreads->Enabled = false;
 			}
-			else if (type == 1) {
+			else if (chg == 2) {
 				filterCheckBox->Enabled = false;
 				scanCheckBox->Enabled = true;
 				textBoxThreads->Enabled = false;
 			}
 		}
-		else if (evt == 1) {
+		else {
 			filterCheckBox->Enabled = true;
 			scanCheckBox->Enabled = true;
 			textBoxThreads->Enabled = true;
@@ -252,12 +266,32 @@ namespace D2WinDivert {
 	}
 	private: delegate System::Void appendTextBoxDelegate(System::String^ id);
 	public: System::Void appendTextBox(std::string id) {
-		auto action = gcnew appendTextBoxDelegate(this, &MainWindow::appendTextBoxWorker);
-		Invoke(action, gcnew System::String(id.c_str()));
+		if (!IsDisposed) {
+			auto action = gcnew appendTextBoxDelegate(this, &MainWindow::appendTextBoxWorker);
+			Invoke(action, gcnew System::String(id.c_str()));
+		}
 	}
 	private: System::Void appendTextBoxWorker(System::String^ id) {
 		textBoxSteamIDs->Text += id;
 		textBoxSteamIDs->Text += Environment::NewLine;
+		textBoxSteamIDs->Select(0, 0);
+	}
+	private: delegate System::Void changeStatusDelegate(int status);
+	public: System::Void changeStatus(int status) {
+		if (!IsDisposed) {
+			auto action = gcnew changeStatusDelegate(this, &MainWindow::changeStatusWorker);
+			Invoke(action, status);
+		}
+	}
+	private: System::Void changeStatusWorker(int status) {
+		if (status == 0) {
+			labelStatus->ForeColor = System::Drawing::Color::Green;
+			labelStatus->Text = "ALLOW";
+		}
+		else {
+			labelStatus->ForeColor = System::Drawing::Color::Red;
+			labelStatus->Text = "BLOCK";
+		}
 	}
 	private: System::Void vScrollBar1_Scroll(System::Object^ sender, System::Windows::Forms::ScrollEventArgs^ e) {
 		auto number = e->NewValue;
@@ -267,9 +301,9 @@ namespace D2WinDivert {
 			positionS += textBoxSteamIDs->Lines[i]->Length + Environment::NewLine->Length;
 			positionN += textBoxNames->Lines[i]->Length + Environment::NewLine->Length;
 		}
-		textBoxNames->SelectionStart = positionN;
+		textBoxNames->Select(positionN, 0);
 		textBoxNames->ScrollToCaret();
-		textBoxSteamIDs->SelectionStart = positionS;
+		textBoxSteamIDs->Select(positionS, 0);
 		textBoxSteamIDs->ScrollToCaret();
 	}
 };

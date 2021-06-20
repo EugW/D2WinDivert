@@ -1,9 +1,10 @@
 #include "Filter.h"
+#include <chrono>
 
 Filter::Filter(D2WinDivert::MainWindow^ win, int mode) {
     window = win;
     players = window->playersID;
-    const char* filter = "udp.DstPort >= 27000 and udp.DstPort <= 27200";
+    const char* filter = "udp.DstPort >= 27000 and udp.DstPort <= 27100";
     // Divert traffic matching the filter:
     running = true;
     handle = WinDivertOpen(filter, WINDIVERT_LAYER_NETWORK, 0, 0);
@@ -32,7 +33,7 @@ DWORD Filter::filterFunction() {
         log("error: failed to allocate buffer", GetLastError());
         exit(EXIT_FAILURE);
     }
-    window->threadStateChange(0, 0);
+    window->threadStateChange(1);
     // Main loop:
     while (running) {
         // Read a matching packet.
@@ -47,11 +48,18 @@ DWORD Filter::filterFunction() {
         bool allow = true;
         if (payload.find("steamid:7656") != std::string::npos) {
             allow = false;
-            for (int x = 0; x < players->size(); x++)
-                if (payload.find(players->at(x)) != std::string::npos) {
+            for (int i = 0; i < players->size(); i++) {
+                if (payload.find(players->at(i)) != std::string::npos) {
                     allow = true;
                     break;
                 }
+            }
+            if (allow) {
+                window->changeStatus(1);
+            }
+            else {
+                window->changeStatus(0);
+            }
         }
 
         if (allow) {
@@ -63,7 +71,7 @@ DWORD Filter::filterFunction() {
         }
     }
     free(packet);
-    window->threadStateChange(0, 1);
+    window->threadStateChange(0);
     return 0;
 }
 
@@ -76,7 +84,7 @@ DWORD Filter::scanFunction() {
         log("error: failed to allocate buffer", GetLastError());
         exit(EXIT_FAILURE);
     }
-    window->threadStateChange(1, 0);
+    window->threadStateChange(2);
     // Main loop:
     while (running) {
         // Read a matching packet.
@@ -101,10 +109,11 @@ DWORD Filter::scanFunction() {
             else if ((pos = payload.find("xboxpwid:", pos)) != std::string::npos) {
                 id = payload.substr(pos + 9, 32);
             }
-        }
-        auto str = window->getLines();
-        if (str.find(id) == std::string::npos) {
-            window->appendTextBox(id);
+            auto str = window->getLines();
+            if (str.find(id) == std::string::npos) {
+                window->appendTextBox(id);
+            }
+            window->changeStatus(0);
         }
 
         // Re-inject the matching packet.
@@ -114,6 +123,6 @@ DWORD Filter::scanFunction() {
         }
     }
     free(packet);
-    window->threadStateChange(1, 1);
+    window->threadStateChange(0);
     return 0;
 }

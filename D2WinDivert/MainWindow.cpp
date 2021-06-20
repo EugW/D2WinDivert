@@ -32,7 +32,7 @@ System::Void MainWindow::scanCheckBox_CheckedChanged(System::Object^ sender, Sys
 System::Void MainWindow::textBox_Edit(System::Object^ sender, System::EventArgs^ e) {
 	auto st = textBoxSteamIDs->SelectionStart;
 	textBoxSteamIDs->Text = textBoxSteamIDs->Text->Replace(Environment::NewLine + Environment::NewLine, Environment::NewLine);
-	textBoxSteamIDs->SelectionStart = st;
+	textBoxSteamIDs->Select(st, 0);
 	auto str = textBoxSteamIDs->Lines;
 	playersID->clear();
 	msclr::interop::marshal_context context;
@@ -85,7 +85,7 @@ System::Void MainWindow::SteamIDHandler(System::Object^ sender, System::Net::Dow
 	for (int i = 0; i < number; i++) {
 		positionN += textBoxNames->Lines[i]->Length + Environment::NewLine->Length;
 	}
-	textBoxNames->SelectionStart = positionN;
+	textBoxNames->Select(positionN, 0);
 	textBoxNames->ScrollToCaret();
 }
 
