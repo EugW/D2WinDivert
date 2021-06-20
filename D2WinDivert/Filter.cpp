@@ -1,6 +1,4 @@
 #include "Filter.h"
-#include "windivert.h"
-#include <fstream>
 
 Filter::Filter(D2WinDivert::MainWindow^ win, int mode) {
     window = win;
@@ -23,21 +21,6 @@ Filter::Filter(D2WinDivert::MainWindow^ win, int mode) {
             CreateThread(NULL, 0, staticScanStart, this, 0, NULL);
         }
     }
-}
-
-void Filter::closeHandle() {
-    running = false;
-    if (!WinDivertClose(handle)) {
-        log("error: failed to close handle", GetLastError());
-    }
-}
-
-DWORD WINAPI Filter::staticFilterStart(LPVOID lpParam) {
-    return ((Filter*)lpParam)->filterFunction();
-}
-
-DWORD WINAPI Filter::staticScanStart(LPVOID lpParam) {
-    return ((Filter*)lpParam)->scanFunction();
 }
 
 DWORD Filter::filterFunction() {
@@ -123,6 +106,7 @@ DWORD Filter::scanFunction() {
         if (str.find(id) == std::string::npos) {
             window->appendTextBox(id);
         }
+
         // Re-inject the matching packet.
         WinDivertHelperCalcChecksums(packet, packetLen, &addr, 0);
         if (!WinDivertSend(handle, packet, packetLen, NULL, &addr)) {
@@ -132,15 +116,4 @@ DWORD Filter::scanFunction() {
     free(packet);
     window->threadStateChange(1, 1);
     return 0;
-}
-
-void Filter::log(std::string msg, int code) {
-    std::ofstream logfl;
-    logfl.open("log_divert.txt", std::ofstream::app);
-    logfl << msg << " " << code << std::endl;
-    logfl.close();
-}
-
-void Filter::log(std::string msg) {
-    log(msg, -1);
 }

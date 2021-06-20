@@ -38,12 +38,13 @@ System::Void MainWindow::textBox_Edit(System::Object^ sender, System::EventArgs^
 	auto str = textBoxSteamIDs->Lines;
 	playersID->clear();
 	msclr::interop::marshal_context context;
-	for (int i = 0; i < str->Length; i++)
+	for (int i = 0; i < str->Length; i++) {
 		if (!String::IsNullOrWhiteSpace(str[i])) {
 			std::string a = context.marshal_as<std::string>(str[i]->Replace(Environment::NewLine, "")
 				->Replace(" ", ""));
 			playersID->push_back(a);
 		}
+	}
 	for (int i = 0; i < playersID->size(); i++) {
 		System::Net::WebClient^ wc = gcnew System::Net::WebClient();
 		wc->DownloadStringCompleted += gcnew System::Net::DownloadStringCompletedEventHandler(this, &MainWindow::SteamIDHandler);
@@ -62,24 +63,24 @@ System::Void MainWindow::SteamIDHandler(System::Object^ sender, System::Net::Dow
 		auto steamid = result->Substring(sstart, send - sstart);
 		auto name = result->Substring(nstart, nend - nstart);
 		msclr::interop::marshal_context context;
-		if (playersNames->count(context.marshal_as<std::string>(steamid)) == 1)
+		if (playersNames->count(context.marshal_as<std::string>(steamid)) == 1) {
 			playersNames->at(context.marshal_as<std::string>(steamid)) =
-			context.marshal_as<std::string>(name);
-		else
+				context.marshal_as<std::string>(name);
+		}
+		else {
 			playersNames->emplace(context.marshal_as<std::string>(steamid),
 				context.marshal_as<std::string>(name));
+		}
 	}
 	textBoxNames->Clear();
+	auto def = System::Text::Encoding::Default;
+	auto utf8 = System::Text::Encoding::UTF8;
 	for (int i = 0; i < playersID->size(); i++) {
 		if (playersNames->count(playersID->at(i)) == 1) {
-			auto def = System::Text::Encoding::Default;
-			auto utf8 = System::Text::Encoding::UTF8;
 			auto bytes = def->GetBytes(gcnew String(playersNames->at(playersID->at(i)).c_str()));
 			textBoxNames->Text += utf8->GetString(bytes);
-			textBoxNames->Text += Environment::NewLine;
 		}
-		else
-			textBoxNames->Text += Environment::NewLine;
+		textBoxNames->Text += Environment::NewLine;
 	}
 }
 

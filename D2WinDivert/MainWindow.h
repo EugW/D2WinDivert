@@ -44,7 +44,6 @@ namespace D2WinDivert {
 	private: System::Windows::Forms::TextBox^ textBoxThreads;
 	private: System::Windows::Forms::Label^ label2;
 	private: System::Windows::Forms::CheckBox^ filterCheckBox;
-
 	private: System::Windows::Forms::CheckBox^ scanCheckBox;
 
 	protected:
