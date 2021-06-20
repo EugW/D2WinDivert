@@ -272,8 +272,10 @@ namespace D2WinDivert {
 		}
 	}
 	private: System::Void appendTextBoxWorker(System::String^ id) {
-		textBoxSteamIDs->Text += id;
-		textBoxSteamIDs->Text += Environment::NewLine;
+		if (textBoxSteamIDs->Text->IndexOf(id) == -1) {
+			textBoxSteamIDs->Text += id;
+			textBoxSteamIDs->Text += Environment::NewLine;
+		}
 		textBoxSteamIDs->Select(0, 0);
 	}
 	private: delegate System::Void changeStatusDelegate(int status);

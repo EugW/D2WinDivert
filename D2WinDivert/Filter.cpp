@@ -45,29 +45,29 @@ DWORD Filter::filterFunction() {
         }
 
         std::string payload(packet, packetLen);
-        bool allow = true;
+        int allow = 1;
         if (payload.find("steamid:7656") != std::string::npos) {
-            allow = false;
+            allow = 0;
             for (int i = 0; i < players->size(); i++) {
                 if (payload.find(players->at(i)) != std::string::npos) {
-                    allow = true;
+                    allow = 2;
                     break;
                 }
             }
-            if (allow) {
-                window->changeStatus(1);
-            }
-            else {
-                window->changeStatus(0);
-            }
         }
 
-        if (allow) {
+        if (allow > 0) {
             // Re-inject the matching packet.
             WinDivertHelperCalcChecksums(packet, packetLen, &addr, 0);
             if (!WinDivertSend(handle, packet, packetLen, NULL, &addr)) {
                 log("warning: failed to reinject packet", GetLastError());
             }
+        }
+        if (allow == 2) {
+            window->changeStatus(1);
+        }
+        else {
+            window->changeStatus(0);
         }
     }
     free(packet);
@@ -96,6 +96,13 @@ DWORD Filter::scanFunction() {
         }
 
         std::string payload(packet, packetLen);
+
+        // Re-inject the matching packet.
+        WinDivertHelperCalcChecksums(packet, packetLen, &addr, 0);
+        if (!WinDivertSend(handle, packet, packetLen, NULL, &addr)) {
+            log("warning: failed to reinject packet", GetLastError());
+        }
+
         size_t pos;
         std::string id;
         if ((pos = payload.find("steamid:7656")) != std::string::npos) {
@@ -109,17 +116,8 @@ DWORD Filter::scanFunction() {
             else if ((pos = payload.find("xboxpwid:", pos)) != std::string::npos) {
                 id = payload.substr(pos + 9, 32);
             }
-            auto str = window->getLines();
-            if (str.find(id) == std::string::npos) {
-                window->appendTextBox(id);
-            }
+            window->appendTextBox(id);
             window->changeStatus(0);
-        }
-
-        // Re-inject the matching packet.
-        WinDivertHelperCalcChecksums(packet, packetLen, &addr, 0);
-        if (!WinDivertSend(handle, packet, packetLen, NULL, &addr)) {
-            log("warning: failed to reinject packet", GetLastError());
         }
     }
     free(packet);
