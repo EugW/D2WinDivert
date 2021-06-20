@@ -45,6 +45,7 @@ namespace D2WinDivert {
 	private: System::Windows::Forms::Label^ label2;
 	private: System::Windows::Forms::CheckBox^ filterCheckBox;
 	private: System::Windows::Forms::CheckBox^ scanCheckBox;
+	private: System::Windows::Forms::VScrollBar^ vScrollBar1;
 
 	protected:
 
@@ -71,6 +72,7 @@ namespace D2WinDivert {
 			this->label2 = (gcnew System::Windows::Forms::Label());
 			this->filterCheckBox = (gcnew System::Windows::Forms::CheckBox());
 			this->scanCheckBox = (gcnew System::Windows::Forms::CheckBox());
+			this->vScrollBar1 = (gcnew System::Windows::Forms::VScrollBar());
 			this->SuspendLayout();
 			// 
 			// label1
@@ -87,14 +89,15 @@ namespace D2WinDivert {
 			this->textBoxSteamIDs->Location = System::Drawing::Point(12, 25);
 			this->textBoxSteamIDs->Multiline = true;
 			this->textBoxSteamIDs->Name = L"textBoxSteamIDs";
-			this->textBoxSteamIDs->Size = System::Drawing::Size(272, 170);
+			this->textBoxSteamIDs->Size = System::Drawing::Size(200, 200);
 			this->textBoxSteamIDs->TabIndex = 2;
+			this->textBoxSteamIDs->WordWrap = false;
 			this->textBoxSteamIDs->TextChanged += gcnew System::EventHandler(this, &MainWindow::textBox_Edit);
 			// 
 			// linkLabel1
 			// 
 			this->linkLabel1->AutoSize = true;
-			this->linkLabel1->Location = System::Drawing::Point(428, 9);
+			this->linkLabel1->Location = System::Drawing::Point(476, 9);
 			this->linkLabel1->Name = L"linkLabel1";
 			this->linkLabel1->Size = System::Drawing::Size(40, 13);
 			this->linkLabel1->TabIndex = 8;
@@ -104,16 +107,17 @@ namespace D2WinDivert {
 			// 
 			// textBoxNames
 			// 
-			this->textBoxNames->Location = System::Drawing::Point(290, 25);
+			this->textBoxNames->Location = System::Drawing::Point(218, 25);
 			this->textBoxNames->Multiline = true;
 			this->textBoxNames->Name = L"textBoxNames";
 			this->textBoxNames->ReadOnly = true;
-			this->textBoxNames->Size = System::Drawing::Size(100, 170);
+			this->textBoxNames->Size = System::Drawing::Size(200, 200);
 			this->textBoxNames->TabIndex = 9;
+			this->textBoxNames->WordWrap = false;
 			// 
 			// buttonHelp
 			// 
-			this->buttonHelp->Location = System::Drawing::Point(399, 98);
+			this->buttonHelp->Location = System::Drawing::Point(447, 97);
 			this->buttonHelp->Name = L"buttonHelp";
 			this->buttonHelp->Size = System::Drawing::Size(69, 23);
 			this->buttonHelp->TabIndex = 10;
@@ -123,7 +127,7 @@ namespace D2WinDivert {
 			// 
 			// textBoxThreads
 			// 
-			this->textBoxThreads->Location = System::Drawing::Point(448, 25);
+			this->textBoxThreads->Location = System::Drawing::Point(496, 25);
 			this->textBoxThreads->Name = L"textBoxThreads";
 			this->textBoxThreads->Size = System::Drawing::Size(20, 20);
 			this->textBoxThreads->TabIndex = 12;
@@ -133,7 +137,7 @@ namespace D2WinDivert {
 			// label2
 			// 
 			this->label2->AutoSize = true;
-			this->label2->Location = System::Drawing::Point(396, 28);
+			this->label2->Location = System::Drawing::Point(444, 28);
 			this->label2->Name = L"label2";
 			this->label2->Size = System::Drawing::Size(46, 13);
 			this->label2->TabIndex = 11;
@@ -142,7 +146,7 @@ namespace D2WinDivert {
 			// filterCheckBox
 			// 
 			this->filterCheckBox->AutoSize = true;
-			this->filterCheckBox->Location = System::Drawing::Point(399, 51);
+			this->filterCheckBox->Location = System::Drawing::Point(447, 51);
 			this->filterCheckBox->Name = L"filterCheckBox";
 			this->filterCheckBox->Size = System::Drawing::Size(48, 17);
 			this->filterCheckBox->TabIndex = 13;
@@ -153,7 +157,7 @@ namespace D2WinDivert {
 			// scanCheckBox
 			// 
 			this->scanCheckBox->AutoSize = true;
-			this->scanCheckBox->Location = System::Drawing::Point(399, 75);
+			this->scanCheckBox->Location = System::Drawing::Point(447, 74);
 			this->scanCheckBox->Name = L"scanCheckBox";
 			this->scanCheckBox->Size = System::Drawing::Size(51, 17);
 			this->scanCheckBox->TabIndex = 14;
@@ -161,11 +165,22 @@ namespace D2WinDivert {
 			this->scanCheckBox->UseVisualStyleBackColor = true;
 			this->scanCheckBox->CheckedChanged += gcnew System::EventHandler(this, &MainWindow::scanCheckBox_CheckedChanged);
 			// 
+			// vScrollBar1
+			// 
+			this->vScrollBar1->LargeChange = 1;
+			this->vScrollBar1->Location = System::Drawing::Point(421, 25);
+			this->vScrollBar1->Maximum = 0;
+			this->vScrollBar1->Name = L"vScrollBar1";
+			this->vScrollBar1->Size = System::Drawing::Size(20, 200);
+			this->vScrollBar1->TabIndex = 15;
+			this->vScrollBar1->Scroll += gcnew System::Windows::Forms::ScrollEventHandler(this, &MainWindow::vScrollBar1_Scroll);
+			// 
 			// MainWindow
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(480, 207);
+			this->ClientSize = System::Drawing::Size(528, 236);
+			this->Controls->Add(this->vScrollBar1);
 			this->Controls->Add(this->scanCheckBox);
 			this->Controls->Add(this->filterCheckBox);
 			this->Controls->Add(this->textBoxThreads);
@@ -244,5 +259,18 @@ namespace D2WinDivert {
 		textBoxSteamIDs->Text += id;
 		textBoxSteamIDs->Text += Environment::NewLine;
 	}
-	};
+	private: System::Void vScrollBar1_Scroll(System::Object^ sender, System::Windows::Forms::ScrollEventArgs^ e) {
+		auto number = e->NewValue;
+		int positionS = 0;
+		int positionN = 0;
+		for (int i = 0; i < number; i++) {
+			positionS += textBoxSteamIDs->Lines[i]->Length + Environment::NewLine->Length;
+			positionN += textBoxNames->Lines[i]->Length + Environment::NewLine->Length;
+		}
+		textBoxNames->SelectionStart = positionN;
+		textBoxNames->ScrollToCaret();
+		textBoxSteamIDs->SelectionStart = positionS;
+		textBoxSteamIDs->ScrollToCaret();
+	}
+};
 }

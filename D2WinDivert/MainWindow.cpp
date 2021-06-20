@@ -31,25 +31,25 @@ System::Void MainWindow::scanCheckBox_CheckedChanged(System::Object^ sender, Sys
 
 System::Void MainWindow::textBox_Edit(System::Object^ sender, System::EventArgs^ e) {
 	auto st = textBoxSteamIDs->SelectionStart;
-	auto le = textBoxSteamIDs->SelectionLength;
-	textBoxSteamIDs->Text = textBoxSteamIDs->Text->Replace(Environment::NewLine + Environment::NewLine,
-		Environment::NewLine);
-	textBoxSteamIDs->Select(st, le);
+	textBoxSteamIDs->Text = textBoxSteamIDs->Text->Replace(Environment::NewLine + Environment::NewLine, Environment::NewLine);
+	textBoxSteamIDs->SelectionStart = st;
 	auto str = textBoxSteamIDs->Lines;
 	playersID->clear();
 	msclr::interop::marshal_context context;
 	for (int i = 0; i < str->Length; i++) {
 		if (!String::IsNullOrWhiteSpace(str[i])) {
-			std::string a = context.marshal_as<std::string>(str[i]->Replace(Environment::NewLine, "")
-				->Replace(" ", ""));
+			std::string a = context.marshal_as<std::string>(str[i]->Replace(Environment::NewLine, "")->Replace(" ", ""));
 			playersID->push_back(a);
 		}
 	}
+	if (str->Length != 0) {
+		vScrollBar1->Maximum = str->Length - 1;
+		vScrollBar1->Value = textBoxSteamIDs->GetLineFromCharIndex(st);
+	}
 	for (int i = 0; i < playersID->size(); i++) {
-		System::Net::WebClient^ wc = gcnew System::Net::WebClient();
+		auto wc = gcnew System::Net::WebClient();
 		wc->DownloadStringCompleted += gcnew System::Net::DownloadStringCompletedEventHandler(this, &MainWindow::SteamIDHandler);
-		wc->DownloadStringAsync(gcnew Uri("https://steamcommunity.com/profiles/" +
-			gcnew String(playersID->at(i).c_str()) + "/?xml=1"));
+		wc->DownloadStringAsync(gcnew Uri("https://steamcommunity.com/profiles/" + gcnew String(playersID->at(i).c_str()) + "/?xml=1"));
 	}
 }
 
@@ -64,12 +64,10 @@ System::Void MainWindow::SteamIDHandler(System::Object^ sender, System::Net::Dow
 		auto name = result->Substring(nstart, nend - nstart);
 		msclr::interop::marshal_context context;
 		if (playersNames->count(context.marshal_as<std::string>(steamid)) == 1) {
-			playersNames->at(context.marshal_as<std::string>(steamid)) =
-				context.marshal_as<std::string>(name);
+			playersNames->at(context.marshal_as<std::string>(steamid)) = context.marshal_as<std::string>(name);
 		}
 		else {
-			playersNames->emplace(context.marshal_as<std::string>(steamid),
-				context.marshal_as<std::string>(name));
+			playersNames->emplace(context.marshal_as<std::string>(steamid), context.marshal_as<std::string>(name));
 		}
 	}
 	textBoxNames->Clear();
@@ -82,6 +80,13 @@ System::Void MainWindow::SteamIDHandler(System::Object^ sender, System::Net::Dow
 		}
 		textBoxNames->Text += Environment::NewLine;
 	}
+	auto number = textBoxSteamIDs->GetLineFromCharIndex(textBoxSteamIDs->SelectionStart);
+	int positionN = 0;
+	for (int i = 0; i < number; i++) {
+		positionN += textBoxNames->Lines[i]->Length + Environment::NewLine->Length;
+	}
+	textBoxNames->SelectionStart = positionN;
+	textBoxNames->ScrollToCaret();
 }
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
