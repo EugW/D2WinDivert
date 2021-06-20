@@ -64,10 +64,10 @@ DWORD Filter::filterFunction() {
             }
         }
         if (allow == 2) {
-            window->changeStatus(1);
-        }
-        else {
             window->changeStatus(0);
+        }
+        else if (allow == 0) {
+            window->changeStatus(1);
         }
     }
     free(packet);
