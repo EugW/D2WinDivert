@@ -7,7 +7,7 @@
 
 class Filter {
 	// Constructor
-public: Filter(D2WinDivert::MainWindow^ win, int mode);
+public: Filter(D2WinDivert::MainWindow^ window, int mode);
 	// Public functions
 public: void closeHandle() {
 	running = false;
@@ -16,14 +16,12 @@ public: void closeHandle() {
 	}
 };
 	// Private functions
-private: static DWORD WINAPI staticFilterStart(LPVOID lpParam) {
-	return ((Filter*)lpParam)->filterFunction();
-};
-private: static DWORD WINAPI staticScanStart(LPVOID lpParam) {
-	return ((Filter*)lpParam)->scanFunction();
-};
-private: DWORD filterFunction();
-private: DWORD scanFunction();
+private: static DWORD WINAPI staticCoreStart(LPVOID lpParam);
+private: static DWORD WINAPI staticFilterStart(LPVOID lpParam);
+private: static DWORD WINAPI staticScanStart(LPVOID lpParam);
+private: DWORD coreFunction();
+private: DWORD filterFunction(WINDIVERT_ADDRESS addr, char* packet, unsigned int packetLen);
+private: DWORD scanFunction(WINDIVERT_ADDRESS addr, char* packet, unsigned int packetLen);
 private: void log(std::string msg, int code) {
 	std::ofstream logfl;
 	logfl.open("log_divert.txt", std::ofstream::app);
@@ -39,4 +37,5 @@ public: bool running;
 private: msclr::auto_gcroot<D2WinDivert::MainWindow^> window;
 private: std::vector<std::string>* players;
 private: HANDLE handle;
+private: int mode;
 };

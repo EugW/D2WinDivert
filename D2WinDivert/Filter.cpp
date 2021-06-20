@@ -1,128 +1,127 @@
 #include "Filter.h"
 #include <chrono>
 
-Filter::Filter(D2WinDivert::MainWindow^ win, int mode) {
-    window = win;
+typedef struct {
+    Filter* fltr;
+    WINDIVERT_ADDRESS addr;
+    char* packet;
+    unsigned int packetLen;
+} Data;
+
+Filter::Filter(D2WinDivert::MainWindow^ _window, int _mode) {
+    window = _window;
+    mode = _mode;
     players = window->playersID;
     const char* filter = "udp.DstPort >= 27000 and udp.DstPort <= 27100";
-    // Divert traffic matching the filter:
     running = true;
     handle = WinDivertOpen(filter, WINDIVERT_LAYER_NETWORK, 0, 0);
     if (handle == INVALID_HANDLE_VALUE) {
         log("error: failed to open the WinDivert device", GetLastError());
         exit(EXIT_FAILURE);
     }
-    if (mode == 0) {
-        for (int i = 0; i < window->getThreads(); i++) {
-            CreateThread(NULL, 0, staticFilterStart, this, 0, NULL);
-        }
-    }
-    else if (mode == 1) {
-        for (int i = 0; i < window->getThreads(); i++) {
-            CreateThread(NULL, 0, staticScanStart, this, 0, NULL);
-        }
-    }
+    CreateThread(NULL, 0, staticCoreStart, this, 0, NULL);
 }
 
-DWORD Filter::filterFunction() {
-    WINDIVERT_ADDRESS addr;
-    char* packet = (char*)malloc(WINDIVERT_MTU_MAX);
-    unsigned int packetLen;
+DWORD WINAPI Filter::staticCoreStart(LPVOID lpParam) {
+    return ((Filter*)lpParam)->coreFunction();
+}
 
-    if (packet == NULL) {
-        log("error: failed to allocate buffer", GetLastError());
-        exit(EXIT_FAILURE);
+DWORD WINAPI Filter::staticFilterStart(LPVOID lpParam) {
+    Data* data = (Data*)lpParam;
+    DWORD th = data->fltr->filterFunction(data->addr, data->packet, data->packetLen);
+    free(lpParam);
+    return th;
+}
+
+DWORD WINAPI Filter::staticScanStart(LPVOID lpParam) {
+    Data* data = (Data*)lpParam;
+    DWORD th = data->fltr->scanFunction(data->addr, data->packet, data->packetLen);
+    free(lpParam);
+    return th;
+};
+
+DWORD Filter::coreFunction() {
+    if (mode == 0) {
+        window->threadStateChange(1);
     }
-    window->threadStateChange(1);
-    // Main loop:
+    else {
+        window->threadStateChange(2);
+    }
     while (running) {
-        // Read a matching packet.
-        if (!WinDivertRecv(handle, packet, WINDIVERT_MTU_MAX, &packetLen, &addr)) {
+        Data* data = new Data();
+        data->fltr = this;
+        data->packet = (char*)malloc(WINDIVERT_MTU_MAX);
+        if (data->packet == NULL) {
+            log("error: failed to allocate buffer", GetLastError());
+            exit(EXIT_FAILURE);
+        }
+        if (!WinDivertRecv(handle, data->packet, WINDIVERT_MTU_MAX, &(data->packetLen), &(data->addr))) {
             if (running) {
                 log("warning: failed to read packet", GetLastError());
             }
             continue;
         }
-
-        std::string payload(packet, packetLen);
-        bool allow = true;
-        if (payload.find("steamid:7656") != std::string::npos) {
-            allow = false;
-            for (int i = 0; i < players->size(); i++) {
-                if (payload.find(players->at(i)) != std::string::npos) {
-                    allow = true;
-                    break;
-                }
-            }
-            if (allow) {
-                window->changeStatus(1);
-            }
-            else {
-                window->changeStatus(0);
-            }
+        if (mode == 0) {
+            CreateThread(NULL, 0, staticFilterStart, data, 0, NULL);
         }
-
-        if (allow) {
-            // Re-inject the matching packet.
-            WinDivertHelperCalcChecksums(packet, packetLen, &addr, 0);
-            if (!WinDivertSend(handle, packet, packetLen, NULL, &addr)) {
-                log("warning: failed to reinject packet", GetLastError());
-            }
+        else {
+            CreateThread(NULL, 0, staticScanStart, data, 0, NULL);
         }
     }
-    free(packet);
     window->threadStateChange(0);
     return 0;
 }
 
-DWORD Filter::scanFunction() {
-    WINDIVERT_ADDRESS addr;
-    char* packet = (char*)malloc(WINDIVERT_MTU_MAX);
-    unsigned int packetLen;
-
-    if (packet == NULL) {
-        log("error: failed to allocate buffer", GetLastError());
-        exit(EXIT_FAILURE);
+DWORD Filter::filterFunction(WINDIVERT_ADDRESS addr, char* packet, unsigned int packetLen) {
+    std::string payload(packet, packetLen);
+    int allow = 1;
+    if (payload.find("steamid:7656") != std::string::npos) {
+        allow = 0;
+        for (int i = 0; i < players->size(); i++) {
+            if (payload.find(players->at(i)) != std::string::npos) {
+                allow = 2;
+                break;
+            }
+        }
     }
-    window->threadStateChange(2);
-    // Main loop:
-    while (running) {
-        // Read a matching packet.
-        if (!WinDivertRecv(handle, packet, WINDIVERT_MTU_MAX, &packetLen, &addr)) {
-            if (running) {
-                log("warning: failed to read packet", GetLastError());
-            }
-            continue;
-        }
-
-        std::string payload(packet, packetLen);
-        size_t pos;
-        std::string id;
-        if ((pos = payload.find("steamid:7656")) != std::string::npos) {
-            pos++;
-            if ((pos = payload.find("steamid:7656", pos)) != std::string::npos) {
-                id = payload.substr(pos + 8, 17);
-            }
-            else if ((pos = payload.find("str:psn-400", pos)) != std::string::npos) {
-                id = payload.substr(pos + 11, 16);
-            }
-            else if ((pos = payload.find("xboxpwid:", pos)) != std::string::npos) {
-                id = payload.substr(pos + 9, 32);
-            }
-            auto str = window->getLines();
-            if (str.find(id) == std::string::npos) {
-                window->appendTextBox(id);
-            }
-            window->changeStatus(0);
-        }
-
-        // Re-inject the matching packet.
+    if (allow > 0) {
         WinDivertHelperCalcChecksums(packet, packetLen, &addr, 0);
         if (!WinDivertSend(handle, packet, packetLen, NULL, &addr)) {
             log("warning: failed to reinject packet", GetLastError());
         }
     }
+    if (allow == 2) {
+        window->changeStatus(0);
+    }
+    else {
+        window->changeStatus(1);
+    }
     free(packet);
-    window->threadStateChange(0);
+    return 0;
+}
+
+DWORD Filter::scanFunction(WINDIVERT_ADDRESS addr, char* packet, unsigned int packetLen) {
+    std::string payload(packet, packetLen);
+    WinDivertHelperCalcChecksums(packet, packetLen, &addr, 0);
+    if (!WinDivertSend(handle, packet, packetLen, NULL, &addr)) {
+        log("warning: failed to reinject packet", GetLastError());
+    }
+    size_t pos;
+    std::string id;
+    if ((pos = payload.find("steamid:7656")) != std::string::npos) {
+        pos++;
+        if ((pos = payload.find("steamid:7656", pos)) != std::string::npos) {
+            id = payload.substr(pos + 8, 17);
+        }
+        else if ((pos = payload.find("str:psn-400", pos)) != std::string::npos) {
+            id = payload.substr(pos + 11, 16);
+        }
+        else if ((pos = payload.find("xboxpwid:", pos)) != std::string::npos) {
+            id = payload.substr(pos + 9, 32);
+        }
+        window->appendTextBox(id);
+        window->changeStatus(0);
+    }
+    free(packet);
     return 0;
 }
