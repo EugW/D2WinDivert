@@ -1,5 +1,4 @@
 #include "Filter.h"
-#include <chrono>
 
 Filter::Filter(D2WinDivert::MainWindow^ win, int mode) {
     window = win;
