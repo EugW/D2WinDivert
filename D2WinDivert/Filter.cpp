@@ -57,7 +57,6 @@ DWORD Filter::filterFunction() {
 
         if (allow > 0) {
             // Re-inject the matching packet.
-            WinDivertHelperCalcChecksums(packet, packetLen, &addr, 0);
             if (!WinDivertSend(handle, packet, packetLen, NULL, &addr)) {
                 log("warning: failed to reinject packet", GetLastError());
             }
@@ -97,7 +96,6 @@ DWORD Filter::scanFunction() {
         std::string payload(packet, packetLen);
 
         // Re-inject the matching packet.
-        WinDivertHelperCalcChecksums(packet, packetLen, &addr, 0);
         if (!WinDivertSend(handle, packet, packetLen, NULL, &addr)) {
             log("warning: failed to reinject packet", GetLastError());
         }
