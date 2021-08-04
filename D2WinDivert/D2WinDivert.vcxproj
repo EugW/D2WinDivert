@@ -139,10 +139,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DebugWindow.cpp" />
     <ClCompile Include="Filter.cpp" />
-    <ClCompile Include="MainWindow.cpp" />
+    <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DebugWindow.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
     <ClInclude Include="Filter.h" />
     <ClInclude Include="MainWindow.h">
       <FileType>CppForm</FileType>
@@ -150,6 +154,9 @@
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="DebugWindow.resx">
+      <DependentUpon>DebugWindow.h</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainWindow.resx">
       <DependentUpon>MainWindow.h</DependentUpon>
     </EmbeddedResource>

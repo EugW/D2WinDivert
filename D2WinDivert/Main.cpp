@@ -1,3 +1,4 @@
+#include "MainWindow.h"
 #include "Filter.h"
 #include <Windows.h>
 
@@ -46,6 +47,12 @@ System::Void MainWindow::textBox_Edit(System::Object^ sender, System::EventArgs^
 		vScrollBar1->Maximum = str->Length - 1;
 		vScrollBar1->Value = textBoxSteamIDs->GetLineFromCharIndex(st);
 	}
+	else {
+		vScrollBar1->Maximum = 0;
+		vScrollBar1->Value = 0;
+		playersNames->clear();
+		textBoxNames->Text = "";
+	}
 	for (int i = 0; i < playersID->size(); i++) {
 		auto wc = gcnew System::Net::WebClient();
 		wc->DownloadStringCompleted += gcnew System::Net::DownloadStringCompletedEventHandler(this, &MainWindow::SteamIDHandler);
@@ -87,6 +94,21 @@ System::Void MainWindow::SteamIDHandler(System::Object^ sender, System::Net::Dow
 	}
 	textBoxNames->Select(positionN, 0);
 	textBoxNames->ScrollToCaret();
+}
+
+System::Void D2WinDivert::MainWindow::buttonDebug_Click(System::Object^ sender, System::EventArgs^ e) {
+	if (flt != nullptr) {
+		auto win = gcnew DebugWindow();
+		win->Show();
+		flt->dbg = win;
+	}
+}
+
+System::Void D2WinDivert::DebugWindow::checkBoxDebug_CheckedChanged(System::Object^ sender, System::EventArgs^ e) {
+	flt->debugging = D2WinDivert::DebugWindow::checkBoxDebug->Checked;
+	if (flt->debugging) {
+		CreateThread(NULL, 0, flt->staticDebugStart, flt, 0, NULL);
+	}
 }
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
